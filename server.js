@@ -33,14 +33,14 @@ app.post('/', function (req, res) {
     out.files.map(file => {
       const fileName = file.filename;
       if (fileName.substr(fileName.length - 3) === '.py' || fileName.substr(fileName.length - 3) === '.js') {
-        const curlContentCmd = 'curl ' + file.contents_url;
+        const curlContentCmd = 'curl --header \"Authorization: token ' + accessToken + '\" ' + file.contents_url;
         exec(curlContentCmd, function(error, stdout, stderr) {
           const contentOut = JSON.parse(stdout);
           let curlDownloadCmd = '';
           if (file.filename.substr(file.filename.length - 3) === '.py') {
-            curlDownloadCmd = 'curl '+ contentOut.download_url + '?access_token=' + accessToken + '| grep -e @skygear.op -e @op';
+            curlDownloadCmd = 'curl --header \"Authorization: token ' + accessToken + '\" ' + contentOut.download_url + '| grep -e @skygear.op -e @op';
           } else {
-            curlDownloadCmd = 'curl '+ contentOut.download_url  + '?access_token=' + accessToken + '| fgrep .op\\(';
+            curlDownloadCmd = 'curl --header \"Authorization: token ' + accessToken + '\" ' + contentOut.download_url  + '| fgrep .op\\(';
           }
           exec(curlDownloadCmd, function(error, stdout, stderr) {
             if (!stdout) {
