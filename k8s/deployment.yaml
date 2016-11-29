@@ -1,0 +1,33 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: github-api-server
+  namespace: skygear-lambda-check
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: github-api-server
+    spec:
+      containers:
+      - name: github-api-server
+        image: gcr.io/oursky-kube/skygear-lambda-check:fb270ea
+        command:
+        - npm
+        - start
+        ports:
+        - containerPort: 8080
+        env:
+        - name: ACCESS_TOKEN
+          value:
+        - name: SLACK_WEBHOOK_URL
+          value: 
+        resources:
+          requests:
+            cpu: 70m
+            memory: 160Mi
+          limits:
+            cpu: 110m
+            memory: 200Mi
+        imagePullPolicy: Always

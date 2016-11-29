@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: github-api-server
+  name: github-api-server
+  namespace: skygear-lambda-check
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: github-api-server
+  sessionAffinity: None
+  type: ClusterIP
