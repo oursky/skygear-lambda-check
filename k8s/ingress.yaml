@@ -3,6 +3,8 @@ kind: Ingress
 metadata:
   name: github-api-server
   namespace: skygear-lambda-check
+  annotations:
+    ingress.kubernetes.io/whitelist-source-range: 192.30.252.0/22
 spec:
   rules:
   - host: skygear-lambda-check.pandawork.com
