@@ -22,14 +22,20 @@ app.post('/', function (req, res) {
   res.send('POST request');
   const postRequest = req.body;
   let compareUrl = postRequest.repository.compare_url.replace('{base}', postRequest.before);
-  const cmd = 'curl ' + compareUrl.replace('{head}', postRequest.after) + '?access_token=' + accessToken;
+  compareUrl = compareUrl.replace('{head}', postRequest.after);
+  if (!vaildateURL(compareUrl)) {
+    return;
+  }
+  compareUrl = escapeURL(compareUrl);
+  const cmd = 'curl ' + compareUrl + '?access_token=' + accessToken;
   const filesUrls = [];
   const downloadUrls = [];
   let htmlUrl = '';
   exec(cmd, function(error, stdout, stderr) {
     // command output is in stdout
+    console.log('stdout', stdout);
     const out = JSON.parse(stdout);
-    htmlUrl =  out.html_url;
+    htmlUrl = out.html_url;
     out.files.map(file => {
       const fileName = file.filename;
       if (fileName.substr(fileName.length - 3) === '.py' || fileName.substr(fileName.length - 3) === '.js') {
@@ -60,3 +66,18 @@ app.post('/', function (req, res) {
 
 app.listen(PORT);
 console.log('Running on http://localhost:' + PORT);
+
+function vaildateURL(url) {
+  const domain = 'github.com';
+  let pat = '^https?://(?:[^/@:]*:[^/@]*@)?(?:[^/:]+\.)?' + domain + '(?=[/:]|$)';
+  let re = new RegExp(pat, 'i');
+  return re.test(url);
+}
+
+function escapeURL(url) {
+  if (url.indexOf('"') >= 0) {
+    url = url.replace('"', '\\"');
+  }
+  return '"' + url + '"';
+}
+
