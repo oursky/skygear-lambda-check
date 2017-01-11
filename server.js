@@ -39,25 +39,32 @@ app.post('/', function (req, res) {
     out.files.map(file => {
       const fileName = file.filename;
       if (fileName.substr(fileName.length - 3) === '.py' || fileName.substr(fileName.length - 3) === '.js') {
-        const curlContentCmd = 'curl --header \"Authorization: token ' + accessToken + '\" ' + file.contents_url;
-        exec(curlContentCmd, function(error, stdout, stderr) {
-          const contentOut = JSON.parse(stdout);
-          let curlDownloadCmd = '';
-          if (file.filename.substr(file.filename.length - 3) === '.py') {
-            curlDownloadCmd = 'curl --header \"Authorization: token ' + accessToken + '\" ' + contentOut.download_url + '| grep -e @skygear.op -e @op';
-          } else {
-            curlDownloadCmd = 'curl --header \"Authorization: token ' + accessToken + '\" ' + contentOut.download_url  + '| fgrep .op\\(';
-          }
-          exec(curlDownloadCmd, function(error, stdout, stderr) {
-            if (!stdout) {
-              return;
+        let grepCmd = '';
+        console.log('patch', file.patch);
+        if (file.filename.substr(file.filename.length - 3) === '.py') {
+          grepCmd = 'printf "' + file.patch + '" | grep -e @skygear.op -e @op';
+        } else {
+          grepCmd = 'printf "' + file.patch + '" | fgrep .op\\(';
+        }
+        console.log('grepCmd', grepCmd);
+        exec(grepCmd, function(error, stdout, stderr) {
+          let newFunctionName = '';
+          const functionNames = stdout.split(/\r?\n/);
+          console.log('functionNames', functionNames);
+          functionNames.map(name => {
+            if (name[0] === '+') {
+              newFunctionName += name + '\n';
+              console.log('newFunctionName', newFunctionName);
             }
-            let payload = {text : 'Filename: ' + fileName + '\n Function Name: ' + stdout + '\n URL: ' + htmlUrl};
+          });
+          if (newFunctionName !== '') {
+            let payload = {text : 'Filename: ' + fileName + '\n Function Name: ' + newFunctionName + '\n URL: ' + htmlUrl};
             payload = JSON.stringify(payload);
+            console.log('payload', payload);
             const postSlackCmd = "curl -X POST --data-urlencode 'payload=" + payload + "' " + webhookUrl;
             exec(postSlackCmd, function(error, stdout, stderr) {
             });
-          });
+          }
         });
       }
     });
