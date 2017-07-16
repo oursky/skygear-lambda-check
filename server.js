@@ -42,9 +42,9 @@ app.post('/', function (req, res) {
         let grepCmd = '';
         console.log('patch', file.patch);
         if (file.filename.substr(file.filename.length - 3) === '.py') {
-          grepCmd = 'printf "' + file.patch + '" | grep -e @skygear.op -e @op';
+          grepCmd = 'printf "' + file.patch + '" | grep -e @skygear.op';
         } else {
-          grepCmd = 'printf "' + file.patch + '" | fgrep .op\\(';
+          grepCmd = 'printf "' + file.patch + '" | fgrep skygearCloud.op\\(';
         }
         console.log('grepCmd', grepCmd);
         exec(grepCmd, function(error, stdout, stderr) {
