@@ -21,7 +21,10 @@ app.get('/', function (req, res) {
 app.post('/', function (req, res) {
   res.send('POST request');
   const postRequest = req.body;
-  let compareUrl = postRequest.repository.compare_url.replace('{base}', postRequest.before);
+  let compareUrl = postRequest.repository.compare_url.replace(
+    '{base}',
+    postRequest.before
+  );
   compareUrl = compareUrl.replace('{head}', postRequest.after);
   if (!vaildateURL(compareUrl)) {
     return;
@@ -32,16 +35,14 @@ app.post('/', function (req, res) {
   const downloadUrls = [];
   let htmlUrl = '';
   exec(cmd, function(error, stdout, stderr) {
-    // command output is in stdout
-    console.log('stdout', stdout);
     const out = JSON.parse(stdout);
     htmlUrl = out.html_url;
     out.files.map(file => {
       const fileName = file.filename;
-      if (fileName.substr(fileName.length - 3) === '.py' || fileName.substr(fileName.length - 3) === '.js') {
+      const extName = fileName.substr(fileName.length - 3)
+      if (extName === '.py' || extName === '.js') {
         let grepCmd = '';
-        console.log('patch', file.patch);
-        if (file.filename.substr(file.filename.length - 3) === '.py') {
+        if (extName === '.py') {
           grepCmd = 'printf "' + file.patch + '" | grep -e @skygear.op';
         } else {
           grepCmd = 'printf "' + file.patch + '" | fgrep skygearCloud.op\\(';
@@ -54,14 +55,18 @@ app.post('/', function (req, res) {
           functionNames.map(name => {
             if (name[0] === '+') {
               newFunctionName += name + '\n';
-              console.log('newFunctionName', newFunctionName);
             }
           });
           if (newFunctionName !== '') {
-            let payload = {text : 'Filename: ' + fileName + '\n Function Name: ' + newFunctionName + '\n URL: ' + htmlUrl};
+            let payload = {
+              text : 'Filename: ' + fileName +
+                '\n Function Name: ' + newFunctionName +
+                '\n URL: ' + htmlUrl
+            };
             payload = JSON.stringify(payload);
             console.log('payload', payload);
-            const postSlackCmd = "curl -X POST --data-urlencode 'payload=" + payload + "' " + webhookUrl;
+            const postSlackCmd = "curl -X POST --data-urlencode 'payload=" +
+              payload + "' " + webhookUrl;
             exec(postSlackCmd, function(error, stdout, stderr) {
             });
           }
